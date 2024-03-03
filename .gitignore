@@ -17,8 +17,6 @@ config.log
 config.status
 config.guess
 configure
-configure~
-compile
 depcomp
 missing
 ltmain.sh
@@ -41,3 +39,5 @@ CMakeCache.txt
 */CMakeFiles
 CMakeFiles
 *.cmake
+build/
+**/.DS_Store

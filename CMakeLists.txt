@@ -95,6 +95,21 @@ if(NOT THREADS_FOUND)
 endif()
 
 ########################################################################
+# For compass feature
+########################################################################
+#
+if(UNIX AND NOT APPLE)
+  # Find the real-time extensions library (librt)
+  find_library(LIBRT rt)
+
+  if(NOT LIBRT)
+    message(FATAL_ERROR "librt not found")
+  else()
+    message(STATUS "Found librt: ${LIBRT}")
+  endif()
+endif()
+
+########################################################################
 # Create uninstall target
 ########################################################################
 configure_file(

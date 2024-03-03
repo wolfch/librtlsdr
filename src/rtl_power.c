@@ -65,6 +65,7 @@
 
 #include "rtl-sdr.h"
 #include "convenience/convenience.h"
+#include "ipcutil/ipcutil.h"
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
@@ -76,6 +77,7 @@
 #define MINIMUM_RATE			1000000
 
 static volatile int do_exit = 0;
+static volatile int *heading = (int *)0;
 static rtlsdr_dev_t *dev = NULL;
 FILE *file;
 
@@ -790,6 +792,9 @@ int main(int argc, char **argv)
 	char t_str[50];
 	struct tm *cal_time;
 	double (*window_fn)(int, int) = rectangle;
+	struct timespec currentTime;
+        long milliseconds = 0L;
+
 	freq_optarg = "";
 
 	while ((opt = getopt(argc, argv, "f:i:s:t:d:g:p:e:w:c:F:1PDOhT")) != -1) {
@@ -961,6 +966,7 @@ int main(int argc, char **argv)
 	verbose_reset_buffer(dev);
 
 	/* actually do stuff */
+        shm_init((void **)&heading, sizeof(int), "heading");
 	rtlsdr_set_sample_rate(dev, (uint32_t)tunes[0].rate);
 	sine_table(tunes[0].bin_e);
 	next_tick = time(NULL) + interval;
@@ -977,11 +983,17 @@ int main(int argc, char **argv)
 		time_now = time(NULL);
 		if (time_now < next_tick) {
 			continue;}
+		if (clock_gettime(CLOCK_REALTIME, &currentTime) == -1) {
+			perror("clock_gettime");
+			exit(1);
+		}
+		milliseconds = currentTime.tv_nsec / 1000000; // Convert nanoseconds to milliseconds
+
 		// time, Hz low, Hz high, Hz step, samples, dbm, dbm, ...
 		cal_time = localtime(&time_now);
-		strftime(t_str, 50, "%Y-%m-%d, %H:%M:%S", cal_time);
+		strftime(t_str, 50, "%Y%m%d%H%M%S", cal_time);
 		for (i=0; i<tune_count; i++) {
-			fprintf(file, "%s, ", t_str);
+			fprintf(file, "%s.%03ld, %03d, ", t_str, milliseconds, *heading);
 			csv_dbm(&tunes[i]);
 		}
 		fflush(file);

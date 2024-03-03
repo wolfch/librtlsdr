@@ -84,6 +84,13 @@ target_link_libraries(convenience_static
 endif()
 
 ########################################################################
+# For compass feature
+########################################################################
+add_library(ipcutil_static STATIC
+    ipcutil/ipcutil.c
+)
+
+########################################################################
 # Build utility
 ########################################################################
 add_executable(rtl_sdr rtl_sdr.c)
@@ -120,7 +127,7 @@ target_link_libraries(rtl_adsb rtlsdr convenience_static
     ${LIBUSB_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
 )
-target_link_libraries(rtl_power rtlsdr convenience_static
+target_link_libraries(rtl_power rtlsdr convenience_static ipcutil_static
     ${LIBUSB_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
 )
@@ -131,10 +138,11 @@ target_link_libraries(rtl_biast rtlsdr convenience_static
 if(UNIX)
 target_link_libraries(rtl_fm m)
 target_link_libraries(rtl_adsb m)
-target_link_libraries(rtl_power m)
 if(APPLE OR CMAKE_SYSTEM MATCHES "OpenBSD")
+    target_link_libraries(rtl_power m)
     target_link_libraries(rtl_test m)
 else()
+    target_link_libraries(rtl_power m rt)
     target_link_libraries(rtl_test m rt)
 endif()
 endif()
